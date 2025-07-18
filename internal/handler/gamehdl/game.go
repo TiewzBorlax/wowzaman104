@@ -1,8 +1,6 @@
 package gamehdl
 
 import (
-	"math/rand/v2"
-
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -26,10 +24,6 @@ type Request struct {
 	KnownHands [][]Card `json:"knownHands"` // unused in this example
 }
 
-type Response struct {
-	Data []string `json:"response"`
-}
-
 func (h *handler) Test(ctx fiber.Ctx) error {
 	var req Request
 	if err := ctx.Bind().Body(&req); err != nil {
@@ -38,40 +32,38 @@ func (h *handler) Test(ctx fiber.Ctx) error {
 		})
 	}
 
-	decisions := make([]string, 0)
-	for _, game := range req.PlayHands {
-		decisions = append(decisions, decide(game))
-	}
-
-	for _, game := range req.KnownHands {
-		decisions = append(decisions, decide(game))
-	}
-
-	// Example handler logic
+	//  Example handler logic
 	// This could be replaced with actual game logic
-	return ctx.JSON(fiber.Map{
-		"response": decisions,
-	})
-}
+	mpaStand := map[int]string{}
+	switch {
+	case len(req.PlayHands) != 0:
+		for i, card := range req.PlayHands {
+			countNumber := 0
+			for _, v := range card {
+				countNumber += v.Number
+			}
 
-// calculateValue returns the baccarat point total of a hand.
-func calculateValue(hand []Card) int {
-	sum := 0
-	for _, c := range hand {
-		v := c.Number
-		if v >= 10 { // 10, J, Q, K all count as zero
-			v = 0
+			if countNumber < 5 {
+				mpaStand[i] = "hit"
+			} else {
+				mpaStand[i] = "stand"
+			}
 		}
-		sum += v
-	}
-	return sum % 10
-}
+		response := make([]string, len(mpaStand))
+		for k, v := range mpaStand {
+			response[k] = v
+		}
+	case len(req.PlayHands) != 0:
 
-// decide applies the baccarat rule: draw on 0–5, stand on 6–9.
-func decide(hand []Card) string {
-	total := calculateValue(hand)
-	if total < 5 || (total == 5 && rand.Float64() < 0.3) {
-		return "hit"
 	}
-	return "stand"
+
+	response := make([]string, len(mpaStand))
+	for k, v := range mpaStand {
+		response[k] = v
+	}
+
+	//
+	return ctx.JSON(fiber.Map{
+		"response": response,
+	})
 }
