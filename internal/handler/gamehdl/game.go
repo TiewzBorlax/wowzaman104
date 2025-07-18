@@ -58,8 +58,8 @@ func (h *handler) Test(ctx fiber.Ctx) error {
 	}
 
 	response := make([]string, len(mpaStand))
-	for k, v := range mpaStand {
-		response[k] = v
+	for k, _ := range mpaStand {
+		response[k] = "stand"
 	}
 
 	//
